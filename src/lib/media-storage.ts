@@ -10,6 +10,7 @@ export const UPLOAD_DIR =
 export const TMP_DIR = path.join(UPLOAD_DIR, "tmp");
 export const VIDEO_DIR = path.join(UPLOAD_DIR, "videos");
 export const THUMB_DIR = path.join(UPLOAD_DIR, "thumbs");
+export const IMAGE_DIR = path.join(UPLOAD_DIR, "images");
 
 /** Public URL (served by src/app/media/[...path]/route.ts) for a stored file. */
 export function mediaUrl(relativePath: string) {

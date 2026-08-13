@@ -7,7 +7,8 @@ export function proxy(req: NextRequest) {
   const isProtectedPage = pathname.startsWith("/admin") && !isLoginPage;
   const isProtectedApi =
     (pathname.startsWith("/api/upload") ||
-      pathname.startsWith("/api/projects")) &&
+      pathname.startsWith("/api/projects") ||
+      pathname.startsWith("/api/profile")) &&
     req.method !== "GET";
 
   if (!isProtectedPage && !isProtectedApi) return NextResponse.next();
@@ -26,5 +27,10 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/upload/:path*", "/api/projects/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/upload/:path*",
+    "/api/projects/:path*",
+    "/api/profile/:path*",
+  ],
 };
