@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local video uploads / json "database" — never committed, lives on the VPS disk
+/uploads
+/data
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
