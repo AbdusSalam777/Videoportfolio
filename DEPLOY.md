@@ -278,61 +278,56 @@ Then `sudo nginx -t && sudo systemctl reload nginx`. No app code changes needed 
 
 ## 8. Auto-deploy on every push
 
-`.github/workflows/deploy.yml` builds each push to `main` on GitHub, and
-only if that build succeeds does it SSH in, pull, rebuild, and restart PM2.
-A broken commit therefore fails on CI and never reaches the live site.
+Already installed and running. A systemd timer on the VPS checks GitHub
+every minute and redeploys when `main` has new commits.
 
-### a. Create a deploy key on the VPS
+**Pull-based on purpose.** GitHub holds no credentials for this server and
+there is no deploy key to store or leak — the VPS reaches out, and since
+the repo is public the fetch needs no auth at all.
 
-Run this **on the VPS**. It makes a keypair used only by GitHub Actions:
-
-```bash
-ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_deploy -N ""
-cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-```
-
-Then print the **private** key — this is what GitHub needs:
-
-```bash
-cat ~/.ssh/github_deploy
-```
-
-### b. Add the secrets on GitHub
-
-Go to **Settings → Secrets and variables → Actions → New repository secret**
-in [your repo](https://github.com/AbdusSalam777/Videoportfolio/settings/secrets/actions) and add:
-
-| Secret | Value |
+| Piece | Path |
 |---|---|
-| `VPS_HOST` | `72.62.72.21` |
-| `VPS_USER` | `root` (or your deploy user) |
-| `VPS_SSH_KEY` | the entire output of `cat ~/.ssh/github_deploy`, including the `-----BEGIN`/`-----END` lines |
-| `VPS_PORT` | `22` — optional, only if SSH runs on a different port |
+| Deploy script | `/usr/local/bin/vidportfolio-deploy` |
+| systemd service | `/etc/systemd/system/vidportfolio-deploy.service` |
+| systemd timer | `/etc/systemd/system/vidportfolio-deploy.timer` |
+| Log | `/var/log/vidportfolio-deploy.log` |
 
-Paste the private key yourself in that form. Never commit it, never send it
-over chat, and never paste it into a file in this repo.
+On each run it compares local HEAD against `origin/main`, and when they
+differ: resets to the remote, `npm ci`, `npm run build`, restarts PM2, then
+health-checks the app. **If `npm ci` or the build fails it rolls back to the
+previous commit and rebuilds**, so a broken push cannot leave the site down.
 
-### c. Confirm it works
+The job runs with `Nice=10` and idle IO priority, so a build never starves
+the other apps on this box.
 
-Push anything to `main`, then watch
-[the Actions tab](https://github.com/AbdusSalam777/Videoportfolio/actions).
-The job builds first, deploys second, and fails loudly if the app is not
-back online after the restart.
-
-You can also trigger a deploy by hand from that tab via **Run workflow**.
-
-### Manual redeploy (if you ever need it)
+### Watching a deploy
 
 ```bash
-cd /var/www/vidportfolio
-git pull
-npm ci
-npm run build
-pm2 restart vidportfolio
+tail -f /var/log/vidportfolio-deploy.log
+systemctl list-timers vidportfolio-deploy.timer
 ```
 
-Uploads and `.env.local` are untouched, since both live outside the repo.
+### Deploy immediately instead of waiting
+
+```bash
+systemctl start vidportfolio-deploy.service
+```
+
+### Pause auto-deploy
+
+```bash
+systemctl disable --now vidportfolio-deploy.timer   # stop
+systemctl enable  --now vidportfolio-deploy.timer   # resume
+```
+
+### Manual redeploy
+
+```bash
+cd /var/www/vidportfolio && git pull && npm ci && npm run build && pm2 restart vidportfolio
+```
+
+Uploads and `.env.local` are untouched by deploys, since both live outside
+the repo.
 
 ## Large uploads on this VPS — what to expect
 

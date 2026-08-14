@@ -1,0 +1,12 @@
+[Unit]
+Description=Check GitHub for vidportfolio updates every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+# Stagger slightly so every VPS on the planet doesn't hit GitHub on :00.
+RandomizedDelaySec=20
+Unit=vidportfolio-deploy.service
+
+[Install]
+WantedBy=timers.target

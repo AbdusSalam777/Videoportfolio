@@ -1,0 +1,12 @@
+[Unit]
+Description=Deploy vidportfolio if GitHub main has new commits
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/vidportfolio-deploy
+# Builds are CPU-heavy and this box is shared with other apps, so run the
+# deploy at low priority rather than letting it starve them.
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=3600
