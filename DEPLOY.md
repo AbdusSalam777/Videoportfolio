@@ -127,6 +127,48 @@ dig +short video.abdusdev.com
 Running certbot before DNS resolves will fail validation, and repeated
 failures hit Let's Encrypt rate limits (5 per hour per domain).
 
+## 4b. Open ports 80 and 443
+
+This box serves its existing site on `:8080`, which means **80 and 443 are
+closed** — verified from outside:
+
+```
+80    closed/filtered
+443   closed/filtered
+8080  OPEN
+22    OPEN
+```
+
+Both must be open before certbot runs. Let's Encrypt validates by fetching
+`http://video.abdusdev.com/.well-known/...` over port 80; if it is blocked
+the certificate request fails, and repeated attempts hit the rate limit of
+5 failures per hour per domain.
+
+There are two firewall layers, and both can block independently:
+
+**Hostinger's firewall** — hPanel → VPS → **Firewall**. If a rule set is
+attached, add Accept rules for TCP 80 and TCP 443 from any source.
+
+**ufw on the server:**
+
+```bash
+sudo ufw status
+# if active:
+sudo ufw allow 80/tcp && sudo ufw allow 443/tcp && sudo ufw status
+```
+
+Confirm from a machine outside the VPS before continuing:
+
+```bash
+curl -sS -m 10 -o /dev/null -w '%{http_code}\n' http://video.abdusdev.com
+```
+
+Anything other than a timeout means port 80 is reachable. A 404 or 502 is
+fine at this stage — it proves nginx is answering.
+
+Port 3100 should stay closed to the outside. The app is only meant to be
+reached through nginx.
+
 ## 5. Nginx server block
 
 This adds a **new** file and leaves your existing `peace` site untouched.
