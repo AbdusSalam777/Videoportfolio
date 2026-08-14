@@ -12,9 +12,21 @@ export class FfmpegMissingError extends Error {
   }
 }
 
+/**
+ * Caps how many cores ffmpeg may use. On a small shared VPS an unbounded
+ * transcode saturates every core and starves whatever else is running on the
+ * box, so set FFMPEG_THREADS=1 there. Unset means "use all cores".
+ */
+function threadArgs() {
+  const threads = process.env.FFMPEG_THREADS;
+  return threads ? ["-threads", threads] : [];
+}
+
 async function execFfmpeg(args: string[]) {
   try {
-    await run("ffmpeg", args, { maxBuffer: 1024 * 1024 * 50 });
+    await run("ffmpeg", [...threadArgs(), ...args], {
+      maxBuffer: 1024 * 1024 * 50,
+    });
   } catch (err: unknown) {
     const code = (err as NodeJS.ErrnoException)?.code;
     if (code === "ENOENT") throw new FfmpegMissingError();

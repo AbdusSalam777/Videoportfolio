@@ -65,8 +65,31 @@ server {
     listen 80;
     server_name portfolio.yourdomain.com;
 
-    # Large video uploads — raise the default 1MB limit.
+    # Large video uploads — the default is 1MB, which rejects almost any video.
     client_max_body_size 3G;
+    # A slow connection sending a big file must not be cut off mid-transfer.
+    client_body_timeout 600s;
+
+    # Uploads block while ffmpeg transcodes, which can far exceed nginx's
+    # default 60s proxy timeout and would otherwise return 504 on a request
+    # that is actually still working.
+    location /api/upload {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Stream the upload straight to the app instead of spooling the whole
+        # file to a temp file on disk first.
+        proxy_request_buffering off;
+
+        proxy_connect_timeout 60s;
+        proxy_send_timeout    3600s;
+        proxy_read_timeout    3600s;
+        send_timeout          3600s;
+    }
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -111,6 +134,36 @@ pm2 restart vidportfolio
 ```
 
 Uploads and `.env.local` are untouched since they live outside the repo.
+
+## Large uploads on this VPS — what to expect
+
+The box is 2 vCPU / 7.8 GB RAM / 93 GB free, already running the courier app on port 5000.
+
+**Memory is fine.** Uploads stream to disk in chunks, so a 3 GB file uses no more RAM than a 3 MB one. ffmpeg itself stays in the low hundreds of MB.
+
+**CPU is the real constraint.** Transcoding pins the cores, and with only 2 of them a long video will make the courier app sluggish while it runs. Set `FFMPEG_THREADS=1` in `.env.local` to leave a core free. Rough guide at CRF 23, 1080p, one thread:
+
+| Source | Approx. transcode time |
+|---|---|
+| 30 seconds | under a minute |
+| 5 minutes | 5–10 minutes |
+| 30 minutes | 30–60 minutes |
+
+4K sources take roughly 3–4× longer. The nginx block above allows up to 1 hour per request; beyond that, compress locally before uploading.
+
+**The browser tab must stay open.** Transcoding happens inside the HTTP request, so closing the tab or losing connection mid-upload aborts it. Nothing is published in that case — the partial file is cleaned up.
+
+**Disk.** Each upload briefly holds the original plus the encoded output, then deletes the original. Budget ~2× the source file during processing.
+
+**A short transfer can't produce a broken video.** The server compares bytes received against `Content-Length` and rejects a mismatch, rather than encoding a truncated file.
+
+### If an upload fails
+
+```bash
+pm2 logs vidportfolio --lines 100     # look for "[upload]" and ffmpeg errors
+df -h                                  # disk full?
+ls -la /var/www/vidportfolio-uploads/tmp   # leftovers from a crash, safe to delete
+```
 
 ## Notes
 
