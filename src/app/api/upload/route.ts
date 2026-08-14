@@ -14,6 +14,7 @@ import {
   FfmpegMissingError,
 } from "@/lib/ffmpeg";
 import { addProject, readProjects, slugify, type Category } from "@/lib/store";
+import { hasValidSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 3600; // hour-long ceiling; big transcodes are slow
@@ -42,6 +43,11 @@ async function ensureDirs() {
  * body is nothing but the file and memory use stays flat regardless of size.
  */
 export async function POST(req: NextRequest) {
+  // Authenticated here rather than in proxy.ts: see the note in that file.
+  if (!hasValidSession(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const q = req.nextUrl.searchParams;
   const title = (q.get("title") ?? "").trim();
   const client = (q.get("client") ?? "").trim();
@@ -137,6 +143,22 @@ export async function POST(req: NextRequest) {
   if (!stat || stat.size === 0) {
     await cleanup();
     return NextResponse.json({ error: "Uploaded file was empty" }, { status: 400 });
+  }
+
+  console.log(
+    `[upload] ${slug}: declared=${declaredSize} received=${stat.size} diff=${declaredSize - stat.size}`
+  );
+
+  // A short read means the transfer was cut off. Encoding it anyway would
+  // silently publish a truncated video, so fail loudly instead.
+  if (declaredSize > 0 && stat.size < declaredSize) {
+    await cleanup();
+    return NextResponse.json(
+      {
+        error: `Upload incomplete — received ${stat.size} of ${declaredSize} bytes. Please try again.`,
+      },
+      { status: 400 }
+    );
   }
 
   let dimensions: { width: number; height: number } | null = null;

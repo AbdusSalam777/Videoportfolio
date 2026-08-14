@@ -35,6 +35,14 @@ export function verifySessionToken(token: string | undefined | null) {
   return Number(payload) > Date.now();
 }
 
+/**
+ * Route-level auth guard for endpoints that must bypass the proxy — the proxy
+ * caps request bodies at 10MB, which truncates video uploads.
+ */
+export function hasValidSession(req: { cookies: { get(name: string): { value: string } | undefined } }) {
+  return verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value);
+}
+
 export function checkPassword(input: string) {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected) return false;

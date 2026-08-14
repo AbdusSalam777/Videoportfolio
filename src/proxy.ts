@@ -5,9 +5,11 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isLoginPage = pathname === "/admin/login";
   const isProtectedPage = pathname.startsWith("/admin") && !isLoginPage;
+  // NOTE: /api/upload is deliberately absent here. Routing a request through
+  // the proxy caps its body at 10MB, which silently truncated large video
+  // uploads. That route authenticates itself instead — see requireSession().
   const isProtectedApi =
-    (pathname.startsWith("/api/upload") ||
-      pathname.startsWith("/api/projects") ||
+    (pathname.startsWith("/api/projects") ||
       pathname.startsWith("/api/profile")) &&
     req.method !== "GET";
 
@@ -27,10 +29,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/api/upload/:path*",
-    "/api/projects/:path*",
-    "/api/profile/:path*",
-  ],
+  matcher: ["/admin/:path*", "/api/projects/:path*", "/api/profile/:path*"],
 };
