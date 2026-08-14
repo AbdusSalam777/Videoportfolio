@@ -72,6 +72,8 @@ export default async function Home() {
       <ReelHero
         videoSrc={hero?.videoPath}
         posterSrc={hero?.posterPath}
+        width={hero?.width}
+        height={hero?.height}
         name={profile.tagline}
         tagline="Commercials, music videos, and short-form content that keeps people watching to the end."
       />

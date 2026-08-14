@@ -13,19 +13,29 @@ export default async function ProjectPage({
   const project = await getProject(slug);
   if (!project) notFound();
 
+  const isVertical = Boolean(
+    project.width && project.height && project.height > project.width
+  );
+
   return (
     <div className="px-6 pt-32 pb-20 md:px-12">
       <Link href="/work" className="text-sm text-neutral-400 hover:text-white">
         ← Back to work
       </Link>
 
-      <div className="mt-6 aspect-video w-full overflow-hidden rounded-lg bg-neutral-900">
+      <div
+        className={`mt-6 w-full overflow-hidden rounded-lg bg-neutral-950 ${
+          isVertical ? "mx-auto max-w-md" : "aspect-video"
+        }`}
+      >
         <video
           controls
           playsInline
-          preload="none"
+          preload="metadata"
           poster={project.posterPath}
-          className="h-full w-full object-cover"
+          className={
+            isVertical ? "h-auto w-full" : "h-full w-full object-cover"
+          }
         >
           <source src={project.videoPath} type="video/mp4" />
         </video>

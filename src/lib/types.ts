@@ -20,6 +20,9 @@ export type Project = {
   videoPath: string;
   previewPath: string;
   posterPath: string;
+  /** Source pixel dimensions; absent on uploads made before this was tracked. */
+  width?: number;
+  height?: number;
 };
 
 export const categories: Category[] = [

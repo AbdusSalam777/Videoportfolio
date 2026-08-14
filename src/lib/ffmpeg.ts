@@ -74,6 +74,35 @@ export async function transcodePreview(input: string, output: string) {
   ]);
 }
 
+/**
+ * Reads the video's pixel dimensions so the UI can lay out vertical (9:16)
+ * clips differently from landscape ones instead of cropping them to fit.
+ */
+export async function probeDimensions(input: string) {
+  try {
+    const { stdout } = await run(
+      "ffprobe",
+      [
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=width,height",
+        "-of",
+        "csv=p=0",
+        input,
+      ],
+      { maxBuffer: 1024 * 1024 }
+    );
+    const [w, h] = stdout.trim().split(",").map(Number);
+    if (!w || !h) return null;
+    return { width: w, height: h };
+  } catch {
+    return null; // non-fatal: layout just falls back to landscape
+  }
+}
+
 export async function extractThumbnail(input: string, output: string) {
   await execFfmpeg([
     "-y",
