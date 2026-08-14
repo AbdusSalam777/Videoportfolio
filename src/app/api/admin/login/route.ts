@@ -10,7 +10,10 @@ import {
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const { password } = await req.json();
+  // A malformed body is a bad request, not a server fault — without this the
+  // route throws and returns 500, which looks like an outage in the logs.
+  const body = await req.json().catch(() => null);
+  const password = body?.password;
 
   if (typeof password !== "string" || !checkPassword(password)) {
     return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
