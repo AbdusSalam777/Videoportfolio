@@ -53,3 +53,18 @@ export function checkPassword(input: string) {
 }
 
 export const SESSION_COOKIE_MAX_AGE = SESSION_MAX_AGE_SECONDS;
+
+/**
+ * Whether to mark the session cookie `Secure`.
+ *
+ * Browsers drop Secure cookies sent over plain HTTP, so leaving this on while
+ * the site is served from a bare IP with no TLS makes admin login fail
+ * silently — you log in and land straight back on the login page. Set
+ * COOKIE_SECURE=false in that case, and turn it back on once HTTPS is live.
+ */
+export function useSecureCookie() {
+  const flag = process.env.COOKIE_SECURE;
+  if (flag === "false") return false;
+  if (flag === "true") return true;
+  return process.env.NODE_ENV === "production";
+}

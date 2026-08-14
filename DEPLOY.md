@@ -1,6 +1,33 @@
 # Deploying to your Hostinger VPS
 
-Server: `srv1736885.hstgr.cloud` (72.62.72.21), Ubuntu 24.04, Node 20, PM2, Nginx, certbot already installed. Ports 22/80/443/5432/5000/5001 are taken — this app uses **port 3000**.
+Server: `srv1736885.hstgr.cloud` (72.62.72.21), Ubuntu 24.04, Node 20, PM2,
+Nginx, certbot already installed. Access via the Hostinger browser Terminal
+(hpanel → VPS → Terminal), which logs in as root with no key needed.
+
+## Ports on this box
+
+| Port | Used by |
+|---|---|
+| 22 | SSH |
+| 80 / 443 | nginx |
+| 3000 | **`peace-backend`** (existing app — do not touch) |
+| 5000 | courier backend |
+| 5001 | another node process |
+| 5432 | PostgreSQL (localhost only) |
+| 8080 | nginx → peacesoftware frontend |
+| **3100** | **this app** |
+| **8081** | **this app, public** |
+
+This app runs on **3100** internally and is served publicly on **8081**.
+Port 3000 is deliberately avoided — `peace-backend` already holds it, and
+starting a second process there would fail with `EADDRINUSE` or disrupt the
+running app.
+
+Verify before you start:
+
+```bash
+sudo ss -tlnp | grep -E ':(3100|8081)\b' || echo "3100 and 8081 are free"
+```
 
 ## 1. One-time server setup
 
@@ -37,8 +64,15 @@ NEXT_PUBLIC_FORM_ENDPOINT=
 UPLOAD_DIR=/var/www/vidportfolio-uploads
 DATA_DIR=/var/www/vidportfolio-data
 FFMPEG_THREADS=1
+COOKIE_SECURE=false
 EOF
 ```
+
+> **`COOKIE_SECURE=false` is required while the site is served over plain
+> HTTP from an IP address.** Browsers silently discard `Secure` cookies on
+> non-HTTPS origins, so leaving it unset makes admin login bounce you back
+> to the login page with no error. Remove this line (or set it to `true`)
+> the moment you put a domain and SSL in front — see the warning in §4.
 
 Generate the session secret and paste it into the file above:
 
@@ -53,21 +87,23 @@ file holding secrets — back it up somewhere safe.
 
 ```bash
 npm run build
-pm2 start npm --name vidportfolio -- start -- -p 3000
+pm2 start npm --name vidportfolio -- start -- -p 3100
 pm2 save
+pm2 status          # vidportfolio and peace-backend should both be online
 ```
 
 (`pm2 save` + the `pm2 startup` command you already used for the courier app ensures it restarts on reboot.)
 
 ## 4. Nginx server block
 
-Point a domain or subdomain (e.g. `portfolio.yourdomain.com`) at `72.62.72.21` first (an A record), then:
+This adds a **new** file and leaves your existing `peace` site untouched.
+It listens on 8081 so it never competes with the port 80/8080 vhosts.
 
 ```bash
 sudo tee /etc/nginx/sites-available/vidportfolio <<'EOF'
 server {
-    listen 80;
-    server_name portfolio.yourdomain.com;
+    listen 8081;
+    server_name 72.62.72.21 srv1736885.hstgr.cloud _;
 
     # Large video uploads — the default is 1MB, which rejects almost any video.
     client_max_body_size 3G;
@@ -78,7 +114,7 @@ server {
     # default 60s proxy timeout and would otherwise return 504 on a request
     # that is actually still working.
     location /api/upload {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3100;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -96,7 +132,7 @@ server {
     }
 
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:3100;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -111,8 +147,35 @@ EOF
 
 sudo ln -s /etc/nginx/sites-available/vidportfolio /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d portfolio.yourdomain.com
 ```
+
+`nginx -t` must pass before you reload. If it fails, the reload is skipped
+and your existing sites keep running untouched.
+
+Open the port in the firewall (harmless if ufw is inactive):
+
+```bash
+sudo ufw allow 8081/tcp 2>/dev/null; sudo ufw status
+```
+
+The site is then live at **http://72.62.72.21:8081** — and the admin panel
+at **http://72.62.72.21:8081/admin**.
+
+> ### ⚠️ Add a domain and HTTPS before you rely on this
+>
+> On plain HTTP your admin password and session cookie travel across the
+> network in the clear, readable by anyone between you and the server. That
+> is fine for a first smoke test, not for ongoing use.
+>
+> Once you point a domain at `72.62.72.21` (an A record), switch the vhost
+> to `listen 80; server_name portfolio.yourdomain.com;`, then run:
+>
+> ```bash
+> sudo certbot --nginx -d portfolio.yourdomain.com
+> ```
+>
+> Then **remove `COOKIE_SECURE=false` from `.env.local`** and
+> `pm2 restart vidportfolio`, so the session cookie is HTTPS-only again.
 
 ## 5. (Optional, later) Let Nginx serve video files directly
 
@@ -187,7 +250,7 @@ Uploads and `.env.local` are untouched, since both live outside the repo.
 
 ## Large uploads on this VPS — what to expect
 
-The box is 2 vCPU / 7.8 GB RAM / 93 GB free, already running the courier app on port 5000.
+The box is 2 vCPU / 7.8 GB RAM / 93 GB free, and already runs `peace-backend` (port 3000) plus the courier app (port 5000).
 
 **Memory is fine.** Uploads stream to disk in chunks, so a 3 GB file uses no more RAM than a 3 MB one. ffmpeg itself stays in the low hundreds of MB.
 
