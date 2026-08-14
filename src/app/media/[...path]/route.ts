@@ -10,6 +10,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".jpeg": "image/jpeg",
   ".png": "image/png",
   ".webp": "image/webp",
+  ".svg": "image/svg+xml",
 };
 
 /**
@@ -39,11 +40,18 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ path: strin
   const contentType = CONTENT_TYPES[ext] ?? "application/octet-stream";
   const range = req.headers.get("range");
 
-  const baseHeaders = {
+  const baseHeaders: Record<string, string> = {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=31536000, immutable",
     "Accept-Ranges": "bytes",
+    "X-Content-Type-Options": "nosniff",
   };
+
+  // SVGs can carry inline <script>. Sandboxing the response keeps an uploaded
+  // logo from executing anything in this site's origin.
+  if (ext === ".svg") {
+    baseHeaders["Content-Security-Policy"] = "sandbox; default-src 'none'";
+  }
 
   if (!range) {
     const stream = fs.createReadStream(filePath);

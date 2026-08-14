@@ -4,6 +4,23 @@ export type GalleryImage = {
   caption: string;
 };
 
+export type Testimonial = {
+  id: string;
+  quote: string;
+  author: string;
+  /** e.g. "Founder, Wild Collective" or "YouTube creator, 280K subs" */
+  role: string;
+  createdAt: string;
+};
+
+export type Company = {
+  id: string;
+  name: string;
+  /** Optional uploaded logo; falls back to a styled wordmark when empty. */
+  logoPath: string;
+  url: string;
+};
+
 export type Profile = {
   name: string;
   tagline: string;
@@ -15,6 +32,10 @@ export type Profile = {
   instagram: string;
   avatarPath: string;
   gallery: GalleryImage[];
+  testimonials: Testimonial[];
+  companies: Company[];
+  /** Headline stats shown on the homepage, e.g. "6" / "years editing". */
+  stats: { label: string; value: string }[];
 };
 
 export const defaultProfile: Profile = {
@@ -28,4 +49,12 @@ export const defaultProfile: Profile = {
   instagram: "",
   avatarPath: "",
   gallery: [],
+  testimonials: [],
+  companies: [],
+  stats: [
+    { value: "6+", label: "Years editing" },
+    { value: "120+", label: "Projects delivered" },
+    { value: "48hr", label: "Typical turnaround" },
+    { value: "2", label: "Revision rounds included" },
+  ],
 };

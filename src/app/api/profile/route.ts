@@ -23,6 +23,14 @@ export async function POST(req: NextRequest) {
       .split(",")
       .map((s: string) => s.trim())
       .filter(Boolean),
+    stats: Array.isArray(body.stats)
+      ? body.stats
+          .map((s: { value?: unknown; label?: unknown }) => ({
+            value: String(s?.value ?? "").trim(),
+            label: String(s?.label ?? "").trim(),
+          }))
+          .filter((s: { value: string; label: string }) => s.value && s.label)
+      : current.stats,
   };
 
   await writeProfile(updated);

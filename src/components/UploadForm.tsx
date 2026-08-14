@@ -39,10 +39,8 @@ export default function UploadForm() {
     <form
       ref={formRef}
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-lg border border-neutral-800 bg-neutral-900 p-6"
+      className="space-y-4 rounded-lg border border-neutral-800 bg-neutral-950 p-5"
     >
-      <h2 className="font-heading text-lg text-white">Upload a project</h2>
-
       <div>
         <label className="mb-1 block text-sm text-neutral-400">
           Video file

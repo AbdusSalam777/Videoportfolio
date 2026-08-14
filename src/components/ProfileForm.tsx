@@ -10,6 +10,11 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Always render four rows so empty slots can be filled in later.
+  const stats = [0, 1, 2, 3].map(
+    (i) => profile.stats[i] ?? { value: "", label: "" }
+  );
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSaving(true);
@@ -24,6 +29,9 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       instagram: data.get("instagram"),
       skills: data.get("skills"),
       tools: data.get("tools"),
+      stats: data
+        .getAll("statValue")
+        .map((value, i) => ({ value, label: data.getAll("statLabel")[i] })),
     };
     const res = await fetch("/api/profile", {
       method: "POST",
@@ -48,8 +56,13 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="space-y-6 rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-      <h2 className="font-heading text-lg text-white">Profile</h2>
+    <section className="space-y-5 rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+      <div>
+        <h2 className="font-heading text-lg text-white">Profile</h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Your name, story, and headline stats — shown across the whole site.
+        </p>
+      </div>
 
       <div className="flex items-center gap-4">
         <img
@@ -138,26 +151,42 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm text-neutral-400">
-              Clients / worked with
-            </label>
-            <input
-              name="clients"
-              defaultValue={profile.clients}
-              className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-neutral-400">
-              Instagram URL
-            </label>
-            <input
-              name="instagram"
-              defaultValue={profile.instagram}
-              className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
-            />
+        <div>
+          <label className="mb-1 block text-sm text-neutral-400">
+            Instagram URL
+          </label>
+          <input
+            name="instagram"
+            defaultValue={profile.instagram}
+            className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+          />
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-neutral-400">
+            Headline stats
+          </label>
+          <p className="mb-2 text-xs text-neutral-500">
+            Four numbers shown across your homepage. Leave a pair blank to hide
+            it.
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {stats.map((s, i) => (
+              <div key={i} className="flex gap-2">
+                <input
+                  name="statValue"
+                  defaultValue={s.value}
+                  placeholder="48hr"
+                  className="w-24 rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+                />
+                <input
+                  name="statLabel"
+                  defaultValue={s.label}
+                  placeholder="Typical turnaround"
+                  className="flex-1 rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -170,6 +199,6 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         </button>
         {error && <p className="text-sm text-red-400">{error}</p>}
       </form>
-    </div>
+    </section>
   );
 }

@@ -28,14 +28,16 @@ export default function GalleryManager({ images }: { images: GalleryImage[] }) {
   }
 
   return (
-    <div className="space-y-6 rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-      <h2 className="font-heading text-lg text-white">
-        Behind-the-scenes gallery
-      </h2>
-      <p className="text-sm text-neutral-500">
-        Editing screenshots, workspace photos, before/after stills — shown on
-        your About page.
-      </p>
+    <section className="space-y-5 rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+      <div>
+        <h2 className="font-heading text-lg text-white">
+          Behind-the-scenes gallery
+        </h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Editing screenshots, workspace photos, before/after stills — shown on
+          your About page and homepage.
+        </p>
+      </div>
 
       <form
         ref={formRef}
@@ -90,6 +92,6 @@ export default function GalleryManager({ images }: { images: GalleryImage[] }) {
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
