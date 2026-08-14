@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Videoportfolio
 
-## Getting Started
+A self-hosted video editing portfolio. Videos are uploaded through a
+password-protected admin panel, compressed on the server with ffmpeg, and
+served straight from disk — no Cloudinary, Vimeo, or YouTube involved.
 
-First, run the development server:
+## What it does
+
+- **Public site** — hero reel, filterable work grid with hover previews,
+  about page, contact form. No login needed to view anything.
+- **Admin panel** (`/admin`) — upload and delete videos, edit your bio,
+  skills, tools and headline stats, manage client logos and a
+  behind-the-scenes gallery.
+- **Client reviews** — visitors submit testimonials from the homepage;
+  nothing is published until you approve it in the admin panel.
+
+Every upload is transcoded to a web-ready H.264 MP4 with `+faststart`, plus
+a short muted preview clip for grid hovers and an extracted thumbnail.
+Portrait (9:16) clips are detected and laid out whole instead of cropped.
+
+## Running locally
+
+Requires Node 20+ and [ffmpeg](https://ffmpeg.org/) on your `PATH`.
 
 ```bash
+npm ci
+cp .env.local.example .env.local   # then fill in the values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Generate a session secret with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Purpose |
+|---|---|
+| `ADMIN_PASSWORD` | password for `/admin` |
+| `SESSION_SECRET` | signs the admin session cookie |
+| `NEXT_PUBLIC_FORM_ENDPOINT` | contact form target (e.g. Formspree) |
+| `UPLOAD_DIR` | where videos/images are written (default `./uploads`) |
+| `DATA_DIR` | where the JSON store lives (default `./data`) |
+| `FFMPEG_THREADS` | cap ffmpeg's cores; set to `1` on a small VPS |
 
-## Learn More
+## Where data lives
 
-To learn more about Next.js, take a look at the following resources:
+There is no database. Projects and profile data are JSON files in
+`DATA_DIR`; media sits in `UPLOAD_DIR`. Both are gitignored and, in
+production, live outside the checkout so deploys never touch them.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Back up `UPLOAD_DIR`, `DATA_DIR`, and `.env.local`** — they are the whole
+site's content and secrets.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [DEPLOY.md](DEPLOY.md) for the full VPS setup (PM2, Nginx, SSL) and the
+GitHub Actions pipeline that builds on push and deploys only if the build
+passes.
