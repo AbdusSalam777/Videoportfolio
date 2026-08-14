@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { useRef } from "react";
 import type { Project } from "@/lib/types";
+import { isVertical } from "@/lib/orientation";
 
 export default function HoverVideoCard({ project }: { project: Project }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const isVertical = Boolean(
-    project.width && project.height && project.height > project.width
-  );
-  const fit = isVertical ? "object-contain" : "object-cover";
+  const vertical = isVertical(project);
 
   const handleEnter = () => {
     const v = videoRef.current;
@@ -28,25 +26,20 @@ export default function HoverVideoCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/work/${project.slug}`}
-      className="group relative block aspect-video overflow-hidden rounded-lg bg-neutral-900"
+      // The card matches the video's own aspect ratio, so object-cover fills it
+      // exactly — the whole frame shows with nothing cropped and no blurred
+      // filler behind it.
+      className={`group relative block overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 transition-colors hover:border-neutral-600 ${
+        vertical ? "aspect-[9/16]" : "aspect-video"
+      }`}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
-      {/* Blurred fill behind vertical clips so the card has no empty bars. */}
-      {isVertical && (
-        <img
-          src={project.posterPath}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl"
-        />
-      )}
       <img
         src={project.posterPath}
         alt={project.title}
         loading="lazy"
-        className={`absolute inset-0 h-full w-full ${fit} transition-opacity duration-300 group-hover:opacity-0`}
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0"
       />
       <video
         ref={videoRef}
@@ -54,7 +47,7 @@ export default function HoverVideoCard({ project }: { project: Project }) {
         loop
         playsInline
         preload="none"
-        className={`absolute inset-0 h-full w-full ${fit} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+        className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
       />
       <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/0 to-black/0 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
         <p className="text-xs uppercase tracking-wide text-neutral-300">

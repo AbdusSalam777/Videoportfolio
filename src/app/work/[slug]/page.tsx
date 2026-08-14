@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/store";
+import { isVertical } from "@/lib/orientation";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +14,7 @@ export default async function ProjectPage({
   const project = await getProject(slug);
   if (!project) notFound();
 
-  const isVertical = Boolean(
-    project.width && project.height && project.height > project.width
-  );
+  const vertical = isVertical(project);
 
   return (
     <div className="px-6 pt-32 pb-20 md:px-12">
@@ -24,8 +23,8 @@ export default async function ProjectPage({
       </Link>
 
       <div
-        className={`mt-6 w-full overflow-hidden rounded-lg bg-neutral-950 ${
-          isVertical ? "mx-auto max-w-md" : "aspect-video"
+        className={`mt-6 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 ${
+          vertical ? "mx-auto max-w-md" : "aspect-video"
         }`}
       >
         <video
@@ -33,9 +32,7 @@ export default async function ProjectPage({
           playsInline
           preload="metadata"
           poster={project.posterPath}
-          className={
-            isVertical ? "h-auto w-full" : "h-full w-full object-cover"
-          }
+          className={vertical ? "h-auto w-full" : "h-full w-full object-cover"}
         >
           <source src={project.videoPath} type="video/mp4" />
         </video>

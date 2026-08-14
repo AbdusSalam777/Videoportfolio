@@ -1,6 +1,6 @@
 import Link from "next/link";
 import ReelHero from "@/components/ReelHero";
-import HoverVideoCard from "@/components/HoverVideoCard";
+import WorkGrid from "@/components/WorkGrid";
 import Testimonials from "@/components/Testimonials";
 import Companies from "@/components/Companies";
 import { getFeatured } from "@/lib/store";
@@ -230,10 +230,8 @@ export default async function Home() {
               </p>
             </div>
           ) : (
-            <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {featured.map((p) => (
-                <HoverVideoCard key={p.slug} project={p} />
-              ))}
+            <div className="mt-10">
+              <WorkGrid projects={featured} />
             </div>
           )}
         </div>
