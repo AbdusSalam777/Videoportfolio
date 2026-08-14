@@ -128,7 +128,7 @@ export default async function AboutPage() {
         </section>
       )}
 
-      <Testimonials items={profile.testimonials} />
+      <Testimonials items={profile.testimonials} showForm={false} />
     </>
   );
 }

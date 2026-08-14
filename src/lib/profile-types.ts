@@ -11,6 +11,11 @@ export type Testimonial = {
   /** e.g. "Founder, Wild Collective" or "YouTube creator, 280K subs" */
   role: string;
   createdAt: string;
+  /**
+   * Submitted through the public form, so nothing is shown on the site until
+   * it's approved in /admin. Prevents spam and abuse going live.
+   */
+  approved: boolean;
 };
 
 export type Company = {

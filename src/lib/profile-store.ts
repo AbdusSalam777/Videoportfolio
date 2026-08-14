@@ -19,7 +19,16 @@ async function ensureProfileFile() {
 export async function readProfile(): Promise<Profile> {
   await ensureProfileFile();
   const raw = await fs.readFile(PROFILE_FILE, "utf-8");
-  return { ...defaultProfile, ...JSON.parse(raw) };
+  const profile: Profile = { ...defaultProfile, ...JSON.parse(raw) };
+
+  // Testimonials written before approval existed were owner-authored, so treat
+  // a missing flag as approved rather than silently hiding them.
+  profile.testimonials = profile.testimonials.map((t) => ({
+    ...t,
+    approved: t.approved ?? true,
+  }));
+
+  return profile;
 }
 
 export async function writeProfile(profile: Profile) {
