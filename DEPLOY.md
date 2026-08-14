@@ -129,7 +129,7 @@ Then `sudo nginx -t && sudo systemctl reload nginx`. No app code changes needed 
 
 ## 6. Auto-deploy on every push
 
-`.github/workflows/deploy.yml` builds each push to `master` on GitHub, and
+`.github/workflows/deploy.yml` builds each push to `main` on GitHub, and
 only if that build succeeds does it SSH in, pull, rebuild, and restart PM2.
 A broken commit therefore fails on CI and never reaches the live site.
 
@@ -166,7 +166,7 @@ over chat, and never paste it into a file in this repo.
 
 ### c. Confirm it works
 
-Push anything to `master`, then watch
+Push anything to `main`, then watch
 [the Actions tab](https://github.com/AbdusSalam777/Videoportfolio/actions).
 The job builds first, deploys second, and fails loudly if the app is not
 back online after the restart.
