@@ -22,9 +22,9 @@ sudo chown -R $USER:$USER /var/www/vidportfolio-uploads /var/www/vidportfolio-da
 
 ```bash
 cd /var/www
-git clone <your-github-repo-url> vidportfolio
+git clone https://github.com/AbdusSalam777/Videoportfolio.git vidportfolio
 cd vidportfolio
-npm install
+npm ci
 ```
 
 Create `.env.local` on the server (never commit this):
@@ -36,6 +36,7 @@ SESSION_SECRET=REPLACE_WITH_OUTPUT_BELOW
 NEXT_PUBLIC_FORM_ENDPOINT=
 UPLOAD_DIR=/var/www/vidportfolio-uploads
 DATA_DIR=/var/www/vidportfolio-data
+FFMPEG_THREADS=1
 EOF
 ```
 
@@ -44,6 +45,9 @@ Generate the session secret and paste it into the file above:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+
+`.env.local` is gitignored, so deploys never overwrite it. It is the only
+file holding secrets — back it up somewhere safe.
 
 ## 3. Build and run with PM2
 
@@ -123,17 +127,63 @@ location /media/ {
 
 Then `sudo nginx -t && sudo systemctl reload nginx`. No app code changes needed — this just intercepts `/media/*` before it reaches Node.
 
-## 6. Redeploying after future changes
+## 6. Auto-deploy on every push
+
+`.github/workflows/deploy.yml` builds each push to `master` on GitHub, and
+only if that build succeeds does it SSH in, pull, rebuild, and restart PM2.
+A broken commit therefore fails on CI and never reaches the live site.
+
+### a. Create a deploy key on the VPS
+
+Run this **on the VPS**. It makes a keypair used only by GitHub Actions:
+
+```bash
+ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/github_deploy -N ""
+cat ~/.ssh/github_deploy.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+Then print the **private** key — this is what GitHub needs:
+
+```bash
+cat ~/.ssh/github_deploy
+```
+
+### b. Add the secrets on GitHub
+
+Go to **Settings → Secrets and variables → Actions → New repository secret**
+in [your repo](https://github.com/AbdusSalam777/Videoportfolio/settings/secrets/actions) and add:
+
+| Secret | Value |
+|---|---|
+| `VPS_HOST` | `72.62.72.21` |
+| `VPS_USER` | `root` (or your deploy user) |
+| `VPS_SSH_KEY` | the entire output of `cat ~/.ssh/github_deploy`, including the `-----BEGIN`/`-----END` lines |
+| `VPS_PORT` | `22` — optional, only if SSH runs on a different port |
+
+Paste the private key yourself in that form. Never commit it, never send it
+over chat, and never paste it into a file in this repo.
+
+### c. Confirm it works
+
+Push anything to `master`, then watch
+[the Actions tab](https://github.com/AbdusSalam777/Videoportfolio/actions).
+The job builds first, deploys second, and fails loudly if the app is not
+back online after the restart.
+
+You can also trigger a deploy by hand from that tab via **Run workflow**.
+
+### Manual redeploy (if you ever need it)
 
 ```bash
 cd /var/www/vidportfolio
 git pull
-npm install
+npm ci
 npm run build
 pm2 restart vidportfolio
 ```
 
-Uploads and `.env.local` are untouched since they live outside the repo.
+Uploads and `.env.local` are untouched, since both live outside the repo.
 
 ## Large uploads on this VPS — what to expect
 
