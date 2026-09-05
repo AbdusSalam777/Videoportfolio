@@ -52,6 +52,28 @@ export async function addProject(project: Project) {
   return project;
 }
 
+/**
+ * Updates a project's metadata only — never the video/thumbnail files or the
+ * slug (which is also its URL), so existing links to /work/[slug] keep working.
+ */
+export async function updateProject(
+  slug: string,
+  patch: Partial<
+    Pick<
+      Project,
+      "title" | "client" | "category" | "role" | "year" | "summary" | "featured"
+    >
+  >
+) {
+  const list = await readProjects();
+  const index = list.findIndex((p) => p.slug === slug);
+  if (index === -1) return null;
+
+  list[index] = { ...list[index], ...patch };
+  await writeProjects(list);
+  return list[index];
+}
+
 export async function deleteProject(slug: string) {
   const list = await readProjects();
   const target = list.find((p) => p.slug === slug);
