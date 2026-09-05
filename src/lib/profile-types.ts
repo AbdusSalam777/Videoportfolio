@@ -26,11 +26,15 @@ export type Company = {
   url: string;
 };
 
+export type CardSize = "sm" | "md" | "lg";
+
 export type WorkLayout = {
   /** Portrait (9:16) videos per row before wrapping. */
   verticalPerRow: 1 | 2 | 3;
   /** Landscape (16:9) videos per row before wrapping. */
   horizontalPerRow: 1 | 2;
+  /** Max width each card is allowed to grow to — see CARD_SIZE_PX in WorkGrid. */
+  cardSize: CardSize;
 };
 
 export type Profile = {
@@ -70,5 +74,7 @@ export const defaultProfile: Profile = {
     { value: "48hr", label: "Typical turnaround" },
     { value: "2", label: "Revision rounds included" },
   ],
-  layout: { verticalPerRow: 3, horizontalPerRow: 2 },
+  // "md" is deliberately smaller than the old fixed 340px/640px caps this
+  // replaced — those read as oversized on an ordinary laptop screen.
+  layout: { verticalPerRow: 3, horizontalPerRow: 2, cardSize: "md" },
 };

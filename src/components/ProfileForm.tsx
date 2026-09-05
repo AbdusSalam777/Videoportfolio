@@ -35,6 +35,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       layout: {
         verticalPerRow: Number(data.get("verticalPerRow")),
         horizontalPerRow: Number(data.get("horizontalPerRow")),
+        cardSize: data.get("cardSize"),
       },
     };
     const res = await fetch("/api/profile", {
@@ -228,6 +229,20 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
               >
                 <option value={1}>1 per row</option>
                 <option value={2}>2 per row</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">
+                Card size
+              </label>
+              <select
+                name="cardSize"
+                defaultValue={profile.layout.cardSize}
+                className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+              >
+                <option value="sm">Small</option>
+                <option value="md">Medium</option>
+                <option value="lg">Large</option>
               </select>
             </div>
           </div>

@@ -19,7 +19,15 @@ async function ensureProfileFile() {
 export async function readProfile(): Promise<Profile> {
   await ensureProfileFile();
   const raw = await fs.readFile(PROFILE_FILE, "utf-8");
-  const profile: Profile = { ...defaultProfile, ...JSON.parse(raw) };
+  const saved = JSON.parse(raw);
+  const profile: Profile = {
+    ...defaultProfile,
+    ...saved,
+    // A shallow spread would let a saved layout missing newer fields (like
+    // cardSize, added after some profiles were first written) fully replace
+    // the default object instead of filling in just the gap.
+    layout: { ...defaultProfile.layout, ...saved.layout },
+  };
 
   // Testimonials written before approval existed were owner-authored, so treat
   // a missing flag as approved rather than silently hiding them.

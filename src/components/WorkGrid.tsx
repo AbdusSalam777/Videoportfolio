@@ -4,12 +4,17 @@ import { useEffect, useState } from "react";
 import HoverVideoCard from "@/components/HoverVideoCard";
 import { splitByOrientation } from "@/lib/orientation";
 import type { Project } from "@/lib/types";
-import type { WorkLayout } from "@/lib/profile-types";
+import type { WorkLayout, CardSize } from "@/lib/profile-types";
 
 const GAP_REM = 1.25; // matches gap-5
-const VERTICAL_MAX_PX = 340;
-const HORIZONTAL_MAX_PX = 640;
 const DESKTOP_BREAKPOINT_PX = 640; // Tailwind's `sm`
+
+/** Max card width per orientation at each size setting — see /admin. */
+const CARD_SIZE_PX: Record<CardSize, { vertical: number; horizontal: number }> = {
+  sm: { vertical: 220, horizontal: 380 },
+  md: { vertical: 280, horizontal: 480 },
+  lg: { vertical: 340, horizontal: 640 },
+};
 
 function chunk<T>(items: T[], size: number): T[][] {
   if (size <= 1) return items.map((i) => [i]);
@@ -64,11 +69,12 @@ function Row({
 
 export default function WorkGrid({
   projects,
-  layout = { verticalPerRow: 3, horizontalPerRow: 2 },
+  layout = { verticalPerRow: 3, horizontalPerRow: 2, cardSize: "md" },
 }: {
   projects: Project[];
   layout?: WorkLayout;
 }) {
+  const sizePx = CARD_SIZE_PX[layout.cardSize] ?? CARD_SIZE_PX.md;
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -105,7 +111,7 @@ export default function WorkGrid({
           key={`v-${i}`}
           items={row}
           perRow={verticalPerRow}
-          maxPx={VERTICAL_MAX_PX}
+          maxPx={sizePx.vertical}
         />
       ))}
       {chunk(horizontal, horizontalPerRow).map((row, i) => (
@@ -113,7 +119,7 @@ export default function WorkGrid({
           key={`h-${i}`}
           items={row}
           perRow={horizontalPerRow}
-          maxPx={HORIZONTAL_MAX_PX}
+          maxPx={sizePx.horizontal}
         />
       ))}
     </div>

@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
       horizontalPerRow: (([1, 2].includes(Number(body.layout?.horizontalPerRow))
         ? Number(body.layout.horizontalPerRow)
         : current.layout.horizontalPerRow) as 1 | 2),
+      cardSize: ((["sm", "md", "lg"].includes(body.layout?.cardSize)
+        ? body.layout.cardSize
+        : current.layout.cardSize) as "sm" | "md" | "lg"),
     },
   };
 
