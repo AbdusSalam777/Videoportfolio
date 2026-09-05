@@ -1,5 +1,6 @@
 export type Category =
   | "Commercial"
+  | "Real Estate"
   | "Music Video"
   | "Social / Vertical"
   | "YouTube"
@@ -34,6 +35,7 @@ export type Project = {
 
 export const categories: Category[] = [
   "Commercial",
+  "Real Estate",
   "Music Video",
   "Social / Vertical",
   "YouTube",
