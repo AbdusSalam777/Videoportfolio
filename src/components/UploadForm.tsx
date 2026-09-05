@@ -159,7 +159,7 @@ export default function UploadForm() {
         <div className="flex items-center gap-2 pt-6">
           <input type="checkbox" name="featured" id="featured" />
           <label htmlFor="featured" className="text-sm text-neutral-400">
-            Feature on homepage
+            Use as homepage hero video
           </label>
         </div>
       </div>

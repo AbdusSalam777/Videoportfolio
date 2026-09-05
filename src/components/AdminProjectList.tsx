@@ -34,7 +34,7 @@ export default function AdminProjectList({ projects }: { projects: Project[] }) 
           />
           <div className="flex-1">
             <p className="font-medium text-white">
-              {p.title} {p.featured && <span className="text-xs text-amber-400">★ featured</span>}
+              {p.title} {p.featured && <span className="text-xs text-amber-400">★ hero video</span>}
             </p>
             <p className="text-sm text-neutral-500">
               {p.category} · {p.client || "—"} · {p.year}

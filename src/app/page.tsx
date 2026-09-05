@@ -3,33 +3,11 @@ import ReelHero from "@/components/ReelHero";
 import WorkGrid from "@/components/WorkGrid";
 import Testimonials from "@/components/Testimonials";
 import Companies from "@/components/Companies";
-import { getFeatured } from "@/lib/store";
+import { readProjects } from "@/lib/store";
 import { readProfile } from "@/lib/profile-store";
 import { initialsAvatar } from "@/lib/avatar";
 
 export const dynamic = "force-dynamic";
-
-// Placeholder photography (free-to-use, Unsplash) — swap for your own work stills.
-const SERVICES = [
-  {
-    title: "Commercial & Brand",
-    desc: "Fast-paced cuts for ads, product launches, and social campaigns — delivered in every aspect ratio you need.",
-    img: "https://images.unsplash.com/photo-1533928298208-27ff66555d8d?q=80&w=1200&auto=format&fit=crop",
-    points: ["16:9, 9:16 & 1:1 exports", "Licensed music sourcing", "Motion titles included"],
-  },
-  {
-    title: "Music Video",
-    desc: "Performance and narrative edits built around the track, with a colour grade that matches the mood.",
-    img: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop",
-    points: ["Beat-matched cutting", "Full colour grade", "Multi-cam sync"],
-  },
-  {
-    title: "YouTube & Long-form",
-    desc: "Retention-focused pacing for weekly creator content, with a consistent channel style you can rely on.",
-    img: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?q=80&w=1200&auto=format&fit=crop",
-    points: ["48hr turnaround", "Hook-first structure", "Thumbnails on request"],
-  },
-];
 
 const PROCESS = [
   {
@@ -63,8 +41,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default async function Home() {
-  const [featured, profile] = await Promise.all([getFeatured(), readProfile()]);
-  const hero = featured[0];
+  const [projects, profile] = await Promise.all([readProjects(), readProfile()]);
+  // "Feature on homepage" now just picks which video plays in the hero;
+  // every project still shows in the grid below regardless of the flag.
+  const hero = projects.find((p) => p.featured) ?? projects[0];
   const avatar = profile.avatarPath || initialsAvatar(profile.name);
 
   return (
@@ -160,78 +140,21 @@ export default async function Home() {
 
       <section className="border-t border-neutral-800 px-6 py-20 md:px-12">
         <div className="mx-auto max-w-6xl">
-          <SectionLabel>Services</SectionLabel>
+          <SectionLabel>Portfolio</SectionLabel>
           <h2 className="mt-3 font-heading text-2xl text-white md:text-4xl">
-            What I edit
+            My work
           </h2>
 
-          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {SERVICES.map((s) => (
-              <article
-                key={s.title}
-                className="group overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900 transition-colors hover:border-neutral-700"
-              >
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                    src={s.img}
-                    alt={s.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-5">
-                  <h3 className="font-heading text-lg text-white">{s.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-neutral-400">
-                    {s.desc}
-                  </p>
-                  <ul className="mt-4 space-y-1.5">
-                    {s.points.map((p) => (
-                      <li
-                        key={p}
-                        className="flex items-center gap-2 text-sm text-neutral-500"
-                      >
-                        <span className="h-1 w-1 rounded-full bg-neutral-600" />
-                        {p}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-neutral-800 px-6 py-20 md:px-12">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex items-end justify-between">
-            <div>
-              <SectionLabel>Portfolio</SectionLabel>
-              <h2 className="mt-3 font-heading text-2xl text-white md:text-4xl">
-                Selected work
-              </h2>
-            </div>
-            <Link
-              href="/work"
-              className="shrink-0 text-sm text-neutral-400 transition-colors hover:text-white"
-            >
-              View all →
-            </Link>
-          </div>
-
-          {featured.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="mt-10 rounded-xl border border-dashed border-neutral-800 px-6 py-16 text-center">
-              <p className="text-neutral-400">
-                Your featured projects will appear here.
-              </p>
+              <p className="text-neutral-400">Your work will appear here.</p>
               <p className="mt-1 text-sm text-neutral-600">
-                Upload a video and tick &ldquo;Feature on homepage&rdquo; to fill
-                this space.
+                Upload a video from /admin to fill this space.
               </p>
             </div>
           ) : (
             <div className="mt-10">
-              <WorkGrid projects={featured} />
+              <WorkGrid projects={projects} />
             </div>
           )}
         </div>
