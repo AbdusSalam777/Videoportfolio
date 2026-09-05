@@ -49,11 +49,14 @@ export default function HoverVideoCard({ project }: { project: Project }) {
         preload="none"
         className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
       />
-      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/80 via-black/0 to-black/0 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      {/* Always visible — not just on hover — so a client scrolling on
+          mobile (where hover doesn't exist at all) can still tell what
+          each piece is without tapping into it. */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/85 via-black/10 to-transparent p-4">
         <p className="text-xs uppercase tracking-wide text-neutral-300">
           {project.category}
         </p>
-        <p className="font-medium text-white">{project.title}</p>
+        <p className="line-clamp-2 font-medium text-white">{project.title}</p>
       </div>
     </Link>
   );

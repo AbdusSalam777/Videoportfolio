@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { readProfile } from "@/lib/profile-store";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,11 +15,22 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Your Name — Video Editor",
-  description:
-    "Video editing portfolio — commercials, music videos, social cutdowns, and YouTube content.",
-};
+// Dynamic (not a static `metadata` export) so the browser tab always shows
+// the name set in /admin — a plain object literal here can't read it, which
+// is exactly why every page used to show the literal placeholder "Your Name".
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await readProfile();
+  return {
+    title: {
+      default: `${profile.name} — Video Editor`,
+      // Child pages just set title: "Work" etc. and this appends the name.
+      template: `%s — ${profile.name}`,
+    },
+    description:
+      profile.tagline ||
+      "Video editing portfolio — commercials, music videos, social cutdowns, and YouTube content.",
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

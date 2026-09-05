@@ -1,9 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProject } from "@/lib/store";
 import { isVertical } from "@/lib/orientation";
 
 export const dynamic = "force-dynamic";
+
+// This is the URL most likely to get shared directly with a client, so it
+// gets the actual project name in the tab/link preview — "Real Estate
+// Walkthrough — Abdus Salam" — instead of every project sharing one generic
+// site-wide title.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+  return { title: project?.title ?? "Project" };
+}
 
 export default async function ProjectPage({
   params,

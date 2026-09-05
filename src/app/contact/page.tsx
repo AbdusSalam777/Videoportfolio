@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import ContactForm from "@/components/ContactForm";
 
-export const metadata: Metadata = {
-  title: "Contact — Your Name",
-};
+// Rendered via the root layout's title template as "Contact — {your name}".
+export const metadata: Metadata = { title: "Contact" };
 
 export default function ContactPage() {
   return (

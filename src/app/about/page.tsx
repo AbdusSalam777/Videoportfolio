@@ -5,9 +5,8 @@ import Testimonials from "@/components/Testimonials";
 import { readProfile } from "@/lib/profile-store";
 import { initialsAvatar } from "@/lib/avatar";
 
-export const metadata: Metadata = {
-  title: "About — Your Name",
-};
+// Rendered via the root layout's title template as "About — {your name}".
+export const metadata: Metadata = { title: "About" };
 
 export const dynamic = "force-dynamic";
 

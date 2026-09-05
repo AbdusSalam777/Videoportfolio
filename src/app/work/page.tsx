@@ -3,9 +3,8 @@ import WorkGrid from "@/components/WorkGrid";
 import { readProjects } from "@/lib/store";
 import { readProfile } from "@/lib/profile-store";
 
-export const metadata: Metadata = {
-  title: "Work — Your Name",
-};
+// Rendered via the root layout's title template as "Work — {your name}".
+export const metadata: Metadata = { title: "Work" };
 
 export const dynamic = "force-dynamic";
 
