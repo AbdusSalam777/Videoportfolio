@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { categories } from "@/lib/types";
+import CaptureThumbnail from "@/components/CaptureThumbnail";
 
 export default function UploadForm() {
   const router = useRouter();
@@ -12,8 +13,25 @@ export default function UploadForm() {
   >("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [customThumb, setCustomThumb] = useState<Blob | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  // Revoke the local preview URL whenever it changes or the form unmounts,
+  // so selecting several files in a row doesn't leak blob: URLs.
+  useEffect(() => {
+    return () => {
+      if (previewSrc) URL.revokeObjectURL(previewSrc);
+    };
+  }, [previewSrc]);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (previewSrc) URL.revokeObjectURL(previewSrc);
+    setCustomThumb(null);
+    setPreviewSrc(file ? URL.createObjectURL(file) : null);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setProgress(0);
@@ -55,15 +73,28 @@ export default function UploadForm() {
       setStatus(pct >= 100 ? "processing" : "uploading");
     };
 
-    xhr.onload = () => {
-      let json: { error?: string } | null = null;
+    xhr.onload = async () => {
+      let json: { project?: { slug: string }; error?: string } | null = null;
       try {
         json = JSON.parse(xhr.responseText);
       } catch {
         /* non-JSON error page */
       }
       if (xhr.status >= 200 && xhr.status < 300) {
+        // If a custom frame was captured, apply it after the main upload
+        // finishes — the transcoded video (and its slug) has to exist first.
+        if (customThumb && json?.project?.slug) {
+          const fd = new FormData();
+          fd.append("image", customThumb, "thumbnail.jpg");
+          await fetch(`/api/projects/${json.project.slug}/thumbnail`, {
+            method: "POST",
+            body: fd,
+          }).catch(() => {});
+        }
+        if (previewSrc) URL.revokeObjectURL(previewSrc);
         form.reset();
+        setPreviewSrc(null);
+        setCustomThumb(null);
         setStatus("idle");
         setProgress(0);
         router.refresh();
@@ -99,6 +130,7 @@ export default function UploadForm() {
           name="video"
           accept="video/mp4,video/quicktime,video/webm,video/x-matroska"
           required
+          onChange={handleFileChange}
           className="w-full text-sm text-neutral-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
         />
         <p className="mt-1 text-xs text-neutral-500">
@@ -106,6 +138,19 @@ export default function UploadForm() {
           Large files may take a few minutes to process.
         </p>
       </div>
+
+      {previewSrc && (
+        <div>
+          <label className="mb-1 block text-sm text-neutral-400">
+            Thumbnail{" "}
+            <span className="text-neutral-600">
+              (optional — scrub to a frame and capture it, otherwise one is
+              picked automatically)
+            </span>
+          </label>
+          <CaptureThumbnail videoSrc={previewSrc} onCapture={setCustomThumb} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

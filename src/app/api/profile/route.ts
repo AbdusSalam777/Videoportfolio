@@ -31,6 +31,14 @@ export async function POST(req: NextRequest) {
           }))
           .filter((s: { value: string; label: string }) => s.value && s.label)
       : current.stats,
+    layout: {
+      verticalPerRow: (([1, 2, 3].includes(Number(body.layout?.verticalPerRow))
+        ? Number(body.layout.verticalPerRow)
+        : current.layout.verticalPerRow) as 1 | 2 | 3),
+      horizontalPerRow: (([1, 2].includes(Number(body.layout?.horizontalPerRow))
+        ? Number(body.layout.horizontalPerRow)
+        : current.layout.horizontalPerRow) as 1 | 2),
+    },
   };
 
   await writeProfile(updated);

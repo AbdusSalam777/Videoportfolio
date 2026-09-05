@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import WorkGrid from "@/components/WorkGrid";
 import { readProjects } from "@/lib/store";
+import { readProfile } from "@/lib/profile-store";
 
 export const metadata: Metadata = {
   title: "Work — Your Name",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function WorkPage() {
-  const projects = await readProjects();
+  const [projects, profile] = await Promise.all([readProjects(), readProfile()]);
 
   return (
     <div className="px-6 pt-32 pb-20 md:px-12">
@@ -19,7 +20,7 @@ export default async function WorkPage() {
           A selection of commercials, music videos, and short-form content.
         </p>
         <div className="mt-10">
-          <WorkGrid projects={projects} />
+          <WorkGrid projects={projects} layout={profile.layout} />
         </div>
       </div>
     </div>

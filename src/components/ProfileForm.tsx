@@ -32,6 +32,10 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       stats: data
         .getAll("statValue")
         .map((value, i) => ({ value, label: data.getAll("statLabel")[i] })),
+      layout: {
+        verticalPerRow: Number(data.get("verticalPerRow")),
+        horizontalPerRow: Number(data.get("horizontalPerRow")),
+      },
     };
     const res = await fetch("/api/profile", {
       method: "POST",
@@ -187,6 +191,45 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
                 />
               </div>
             ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-sm text-neutral-400">
+            Videos per row
+          </label>
+          <p className="mb-2 text-xs text-neutral-500">
+            Controls how the Work grid wraps on desktop. Mobile always shows
+            one per row regardless of this setting.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">
+                Vertical (9:16) videos
+              </label>
+              <select
+                name="verticalPerRow"
+                defaultValue={profile.layout.verticalPerRow}
+                className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+              >
+                <option value={1}>1 per row</option>
+                <option value={2}>2 per row</option>
+                <option value={3}>3 per row</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-neutral-500">
+                Landscape (16:9) videos
+              </label>
+              <select
+                name="horizontalPerRow"
+                defaultValue={profile.layout.horizontalPerRow}
+                className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
+              >
+                <option value={1}>1 per row</option>
+                <option value={2}>2 per row</option>
+              </select>
+            </div>
           </div>
         </div>
 

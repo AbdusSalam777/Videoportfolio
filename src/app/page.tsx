@@ -154,7 +154,7 @@ export default async function Home() {
             </div>
           ) : (
             <div className="mt-10">
-              <WorkGrid projects={projects} />
+              <WorkGrid projects={projects} layout={profile.layout} />
             </div>
           )}
         </div>

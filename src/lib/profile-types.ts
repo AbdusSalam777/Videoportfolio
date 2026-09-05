@@ -26,6 +26,13 @@ export type Company = {
   url: string;
 };
 
+export type WorkLayout = {
+  /** Portrait (9:16) videos per row before wrapping. */
+  verticalPerRow: 1 | 2 | 3;
+  /** Landscape (16:9) videos per row before wrapping. */
+  horizontalPerRow: 1 | 2;
+};
+
 export type Profile = {
   name: string;
   tagline: string;
@@ -41,6 +48,7 @@ export type Profile = {
   companies: Company[];
   /** Headline stats shown on the homepage, e.g. "6" / "years editing". */
   stats: { label: string; value: string }[];
+  layout: WorkLayout;
 };
 
 export const defaultProfile: Profile = {
@@ -62,4 +70,5 @@ export const defaultProfile: Profile = {
     { value: "48hr", label: "Typical turnaround" },
     { value: "2", label: "Revision rounds included" },
   ],
+  layout: { verticalPerRow: 3, horizontalPerRow: 2 },
 };
