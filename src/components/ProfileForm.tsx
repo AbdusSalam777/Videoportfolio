@@ -216,6 +216,7 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
                 <option value={1}>1 per row</option>
                 <option value={2}>2 per row</option>
                 <option value={3}>3 per row</option>
+                <option value={4}>4 per row</option>
               </select>
             </div>
             <div>
