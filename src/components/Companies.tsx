@@ -12,22 +12,22 @@ function initials(name: string) {
 function CompanyCard({ company }: { company: Company }) {
   const inner = (
     <>
-      <div className="flex h-24 items-center justify-center rounded-lg bg-neutral-950/60 px-4">
+      <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 ring-1 ring-white/5 transition-all duration-300 group-hover:ring-white/10">
         {company.logoPath ? (
           <img
             src={company.logoPath}
             alt={company.name}
             loading="lazy"
-            className="max-h-14 w-auto max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            className="max-h-14 w-auto max-w-[80%] object-contain transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
-          <span className="font-heading text-3xl tracking-wide text-neutral-600 transition-colors group-hover:text-neutral-300">
+          <span className="font-heading text-2xl tracking-wide text-neutral-500 transition-colors group-hover:text-neutral-200">
             {initials(company.name)}
           </span>
         )}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-2">
+      <div className="mt-4 flex items-center justify-center gap-1.5">
         <p className="font-medium text-white">{company.name}</p>
         {company.url && (
           <span className="text-sm text-neutral-600 transition-colors group-hover:text-white">
@@ -39,7 +39,7 @@ function CompanyCard({ company }: { company: Company }) {
   );
 
   const className =
-    "group block rounded-xl border border-neutral-800 bg-neutral-900 p-5 transition-colors hover:border-neutral-600";
+    "group flex flex-col items-center rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-neutral-700 hover:bg-neutral-900 hover:shadow-xl hover:shadow-black/30";
 
   return company.url ? (
     <a
