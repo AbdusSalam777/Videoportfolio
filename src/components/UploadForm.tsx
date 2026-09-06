@@ -52,7 +52,6 @@ export default function UploadForm() {
       title: String(data.get("title") ?? ""),
       client: String(data.get("client") ?? ""),
       category: String(data.get("category") ?? ""),
-      role: String(data.get("role") ?? ""),
       year: String(data.get("year") ?? ""),
       summary: String(data.get("summary") ?? ""),
       featured: data.get("featured") ? "true" : "false",
@@ -183,14 +182,6 @@ export default function UploadForm() {
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-neutral-400">Role</label>
-          <input
-            name="role"
-            placeholder="Edit, Color, Sound"
-            className="w-full rounded-md border border-neutral-800 bg-neutral-950 px-3 py-2 text-white outline-none focus:border-neutral-500"
-          />
         </div>
         <div>
           <label className="mb-1 block text-sm text-neutral-400">Year</label>

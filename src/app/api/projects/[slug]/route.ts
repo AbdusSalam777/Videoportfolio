@@ -25,7 +25,6 @@ export async function PATCH(
     title,
     client: String(body.client ?? "").trim(),
     category: String(body.category ?? "").trim() as Category,
-    role: String(body.role ?? "").trim(),
     year: Number(body.year) || new Date().getFullYear(),
     summary: String(body.summary ?? "").trim(),
     featured: Boolean(body.featured),

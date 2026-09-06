@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import { createWriteStream } from "node:fs";
-import { Readable, Transform } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import { TMP_DIR, VIDEO_DIR, THUMB_DIR, mediaUrl } from "@/lib/media-storage";
@@ -28,6 +26,62 @@ const ALLOWED_TYPES = new Set([
 const ALLOWED_EXTS = new Set([".mp4", ".mov", ".webm", ".mkv"]);
 const MAX_BYTES = 5 * 1024 * 1024 * 1024; // 5GB
 
+/**
+ * Streams a Web ReadableStream (the request body) to disk, reading it
+ * manually via getReader() instead of Readable.fromWeb().
+ *
+ * Readable.fromWeb() runs its own internal read loop outside the promise we
+ * await, so when the underlying connection drops mid-upload (a client
+ * hiccup, or nginx giving up on a stalled transfer) it can throw "Invalid
+ * state: ReadableStream is already closed" from *outside* any try/catch in
+ * this file — surfacing as an uncaughtException that crashed the entire
+ * server process for every visitor, not just the failed upload. Reading the
+ * stream manually keeps every read inside a try/catch this function owns, so
+ * a dropped connection becomes a normal caught error and an HTTP response,
+ * never a process crash.
+ */
+async function streamToFile(
+  body: ReadableStream<Uint8Array>,
+  destPath: string,
+  maxBytes: number
+) {
+  const reader = body.getReader();
+  const dest = createWriteStream(destPath);
+  let written = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      written += value.byteLength;
+      if (written > maxBytes) {
+        throw new Error("File too large");
+      }
+
+      if (!dest.write(value)) {
+        await new Promise<void>((resolve, reject) => {
+          dest.once("drain", resolve);
+          dest.once("error", reject);
+        });
+      }
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      dest.end((err?: Error | null) => (err ? reject(err) : resolve()));
+    });
+  } catch (err) {
+    dest.destroy();
+    // Cancelling releases the reader's lock; without this the underlying
+    // stream can be left in the half-read state that produces the crash
+    // this function exists to avoid.
+    await reader.cancel().catch(() => {});
+    throw err;
+  }
+
+  return written;
+}
+
 async function ensureDirs() {
   await fs.mkdir(TMP_DIR, { recursive: true });
   await fs.mkdir(VIDEO_DIR, { recursive: true });
@@ -52,7 +106,6 @@ export async function POST(req: NextRequest) {
   const title = (q.get("title") ?? "").trim();
   const client = (q.get("client") ?? "").trim();
   const category = (q.get("category") ?? "").trim() as Category;
-  const role = (q.get("role") ?? "").trim();
   const year = Number(q.get("year")) || new Date().getFullYear();
   const summary = (q.get("summary") ?? "").trim();
   const featured = q.get("featured") === "true";
@@ -112,24 +165,7 @@ export async function POST(req: NextRequest) {
 
   // Stream the upload to disk without buffering it in memory.
   try {
-    let written = 0;
-    const source = Readable.fromWeb(req.body as Parameters<typeof Readable.fromWeb>[0]);
-
-    // Count bytes inside the pipeline. A plain `source.on("data")` listener
-    // would switch the stream to flowing mode and drop the chunks emitted
-    // before the file destination is attached, silently truncating the upload.
-    const countBytes = new Transform({
-      transform(chunk, _enc, cb) {
-        written += chunk.length;
-        if (written > MAX_BYTES) {
-          cb(new Error("File too large"));
-          return;
-        }
-        cb(null, chunk);
-      },
-    });
-
-    await pipeline(source, countBytes, createWriteStream(originalPath));
+    await streamToFile(req.body, originalPath, MAX_BYTES);
   } catch (err) {
     await cleanup();
     const tooLarge = err instanceof Error && err.message === "File too large";
@@ -187,7 +223,6 @@ export async function POST(req: NextRequest) {
     title,
     client,
     category,
-    role,
     year,
     summary,
     featured,

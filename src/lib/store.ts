@@ -76,7 +76,7 @@ export async function updateProject(
   patch: Partial<
     Pick<
       Project,
-      "title" | "client" | "category" | "role" | "year" | "summary" | "featured"
+      "title" | "client" | "category" | "year" | "summary" | "featured"
     >
   >
 ) {

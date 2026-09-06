@@ -12,7 +12,6 @@ export type Project = {
   title: string;
   client: string;
   category: Category;
-  role: string;
   year: number;
   summary: string;
   featured: boolean;

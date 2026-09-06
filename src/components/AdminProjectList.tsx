@@ -79,7 +79,6 @@ function EditProjectForm({
       title: data.get("title"),
       client: data.get("client"),
       category: data.get("category"),
-      role: data.get("role"),
       year: data.get("year"),
       summary: data.get("summary"),
       featured: data.get("featured") === "on",
@@ -151,14 +150,6 @@ function EditProjectForm({
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-neutral-400">Role</label>
-          <input
-            name="role"
-            defaultValue={project.role}
-            className="w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-white outline-none focus:border-neutral-500"
-          />
         </div>
         <div>
           <label className="mb-1 block text-sm text-neutral-400">Year</label>

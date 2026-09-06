@@ -70,10 +70,6 @@ export default async function ProjectPage({
             <dd className="text-white">{project.category}</dd>
           </div>
           <div>
-            <dt className="text-neutral-500">Role</dt>
-            <dd className="text-white">{project.role || "—"}</dd>
-          </div>
-          <div>
             <dt className="text-neutral-500">Year</dt>
             <dd className="text-white">{project.year}</dd>
           </div>
