@@ -10,15 +10,27 @@ function initials(name: string) {
 }
 
 function CompanyCard({ company }: { company: Company }) {
+  // Most uploaded logos come as flat, opaque-white exports (app-icon style),
+  // not transparent PNGs — left alone, that reads as three mismatched white
+  // squares dropped onto a dark card. Making the white a deliberate "chip"
+  // with real padding turns that into one consistent, intentional treatment
+  // instead. Logo-less cards keep the dark gradient — plain initials don't
+  // need a white backing the way an image does.
+  const logoBox = company.logoPath
+    ? "bg-white ring-1 ring-black/5 shadow-sm group-hover:shadow-md"
+    : "bg-gradient-to-br from-neutral-800 to-neutral-900 ring-1 ring-white/5 group-hover:ring-white/10";
+
   const inner = (
     <>
-      <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-gradient-to-br from-neutral-800 to-neutral-900 ring-1 ring-white/5 transition-all duration-300 group-hover:ring-white/10">
+      <div
+        className={`flex h-28 w-28 items-center justify-center rounded-2xl p-4 transition-all duration-300 ${logoBox}`}
+      >
         {company.logoPath ? (
           <img
             src={company.logoPath}
             alt={company.name}
             loading="lazy"
-            className="max-h-16 w-auto max-w-[80%] object-contain transition-transform duration-300 group-hover:scale-110"
+            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
           <span className="font-heading text-3xl tracking-wide text-neutral-500 transition-colors group-hover:text-neutral-200">
