@@ -1,5 +1,7 @@
 "use client";
 
+import AutoResumeVideo from "@/components/AutoResumeVideo";
+
 const FALLBACK_BG =
   "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?q=80&w=1920&auto=format&fit=crop";
 
@@ -36,17 +38,11 @@ export default function ReelHero({
           </div>
 
           <div className="relative mx-auto w-full max-w-[300px] lg:mx-0 lg:max-w-[340px]">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
+            <AutoResumeVideo
+              src={videoSrc}
               poster={posterSrc}
               className="w-full rounded-2xl border border-neutral-800 shadow-2xl shadow-black/50"
-            >
-              <source src={videoSrc} type="video/mp4" />
-            </video>
+            />
           </div>
         </div>
       </section>
@@ -57,17 +53,11 @@ export default function ReelHero({
   return (
     <section className="relative h-[85vh] min-h-[520px] w-full overflow-hidden bg-neutral-950">
       {videoSrc ? (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
+        <AutoResumeVideo
+          src={videoSrc}
           poster={posterSrc}
           className="absolute inset-0 h-full w-full object-cover"
-        >
-          <source src={videoSrc} type="video/mp4" />
-        </video>
+        />
       ) : (
         <img
           src={FALLBACK_BG}
