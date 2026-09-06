@@ -63,7 +63,14 @@ export async function transcodeMain(input: string, output: string) {
   ]);
 }
 
-/** Short, small, muted preview clip used for grid hover-play. */
+/**
+ * Short, muted preview clip used for grid hover-play. Kept brief (6s, no
+ * audio) so it's cheap to load on hover, but encoded close to the same
+ * quality as the main video (CRF 24 vs 23) rather than the much softer
+ * CRF 30 this used before — that gap was visible enough that a video looked
+ * noticeably worse hovering in the grid than it did a click later on its own
+ * page. The short duration keeps file size small even at this quality.
+ */
 export async function transcodePreview(input: string, output: string) {
   await execFfmpeg([
     "-y",
@@ -72,14 +79,14 @@ export async function transcodePreview(input: string, output: string) {
     "-t",
     "6",
     "-vf",
-    "scale='min(640,iw)':-2",
+    "scale='min(854,iw)':-2",
     "-an",
     "-c:v",
     "libx264",
     "-preset",
-    "veryfast",
+    "fast",
     "-crf",
-    "30",
+    "24",
     "-movflags",
     "+faststart",
     output,
