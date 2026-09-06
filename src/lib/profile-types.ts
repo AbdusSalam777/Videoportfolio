@@ -32,7 +32,7 @@ export type WorkLayout = {
   /** Portrait (9:16) videos per row before wrapping. */
   verticalPerRow: 1 | 2 | 3 | 4;
   /** Landscape (16:9) videos per row before wrapping. */
-  horizontalPerRow: 1 | 2;
+  horizontalPerRow: 1 | 2 | 3;
   /** Max width each card is allowed to grow to — see CARD_SIZE_PX in WorkGrid. */
   cardSize: CardSize;
 };

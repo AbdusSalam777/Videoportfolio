@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
       verticalPerRow: (([1, 2, 3, 4].includes(Number(body.layout?.verticalPerRow))
         ? Number(body.layout.verticalPerRow)
         : current.layout.verticalPerRow) as 1 | 2 | 3 | 4),
-      horizontalPerRow: (([1, 2].includes(Number(body.layout?.horizontalPerRow))
+      horizontalPerRow: (([1, 2, 3].includes(Number(body.layout?.horizontalPerRow))
         ? Number(body.layout.horizontalPerRow)
-        : current.layout.horizontalPerRow) as 1 | 2),
+        : current.layout.horizontalPerRow) as 1 | 2 | 3),
       cardSize: ((["sm", "md", "lg"].includes(body.layout?.cardSize)
         ? body.layout.cardSize
         : current.layout.cardSize) as "sm" | "md" | "lg"),
