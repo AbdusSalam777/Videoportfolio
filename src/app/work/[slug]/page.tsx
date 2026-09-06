@@ -39,7 +39,7 @@ export default async function ProjectPage({
 
       <div
         className={`mt-6 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 ${
-          vertical ? "mx-auto max-w-md" : "aspect-video"
+          vertical ? "mx-auto max-w-md" : "mx-auto max-w-4xl aspect-video"
         }`}
       >
         <video
