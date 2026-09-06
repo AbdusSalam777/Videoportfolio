@@ -58,8 +58,6 @@ export default async function Home() {
         tagline="Commercials, music videos, and short-form content that keeps people watching to the end."
       />
 
-      <Companies items={profile.companies} />
-
       {profile.stats.length > 0 && (
         <section className="border-t border-neutral-800 px-6 py-14 md:px-12">
           <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 lg:grid-cols-4">
@@ -159,6 +157,8 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      <Companies items={profile.companies} />
 
       <Testimonials items={profile.testimonials} />
 
