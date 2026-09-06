@@ -70,6 +70,12 @@ export async function transcodeMain(input: string, output: string) {
  * CRF 30 this used before — that gap was visible enough that a video looked
  * noticeably worse hovering in the grid than it did a click later on its own
  * page. The short duration keeps file size small even at this quality.
+ *
+ * Width stays capped at 640 (roughly 2x the largest card width the grid
+ * ever renders, i.e. sharp on a retina display without over-serving) rather
+ * than something bigger — scaling by *width* on a portrait 9:16 source
+ * balloons the height just as much, so a wider cap here disproportionately
+ * bloats vertical clips for resolution nothing on the page displays.
  */
 export async function transcodePreview(input: string, output: string) {
   await execFfmpeg([
@@ -79,7 +85,7 @@ export async function transcodePreview(input: string, output: string) {
     "-t",
     "6",
     "-vf",
-    "scale='min(854,iw)':-2",
+    "scale='min(640,iw)':-2",
     "-an",
     "-c:v",
     "libx264",
